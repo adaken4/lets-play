@@ -5,8 +5,11 @@ import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.util.Date;
 
 import javax.crypto.SecretKey;
+
+import io.jsonwebtoken.Jwts;
 
 /**
  * JWT utility class for generating, parsing, and validating JSON Web Tokens.
@@ -29,6 +32,21 @@ public class JwtUtils {
      */
     private SecretKey key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
+
+    /**
+     * Generates JWT token for user authentication.
+     * 
+     * @param username user's email (stored as token subject)
+     * @return compact JWT string
+     */
+    public String generateTokenFromUsername(String username) {
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key())
+                .compact();
     }
 
 }
