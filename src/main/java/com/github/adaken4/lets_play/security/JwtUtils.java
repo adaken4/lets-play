@@ -61,4 +61,18 @@ public class JwtUtils {
                 .parseSignedClaims(token).getPayload().getSubject();
     }
 
+    /**
+     * Validates JWT token signature and expiration.
+     * 
+     * @param authToken Bearer token (without "Bearer " prefix)
+     * @return true if token valid, false if expired/invalid
+     */
+    public boolean validateJwtToken(String authToken) {
+        try {
+            Jwts.parser().verifyWith(key()).build().parseSignedClaims(authToken);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
