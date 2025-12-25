@@ -8,4 +8,5 @@ import com.github.adaken4.lets_play.model.User;
 
 public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
+    Boolean existsByEmail(String email);
 }
