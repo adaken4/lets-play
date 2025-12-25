@@ -35,6 +35,45 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     /**
+     * Main filter logic: Extract JWT from Authorization header, validate, and authenticate user.
+     * 
+     * @param request incoming HTTP request
+     * @param response HTTP response
+     * @param filterChain chain of remaining filters/servlets
+     * @throws ServletException if servlet error occurs
+     * @throws IOException if I/O error occurs
+     */
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        try {
+            String jwt = parseJwt(request);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                // Extract username (email) from valid token
+                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+
+                // Load user details from database
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                // Create authentication token with user authorities (roles)
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+
+                // Add request details (IP, session ID) to authentication context
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // Set authentication in Spring Security context (makes @AuthenticationPrincipal available)
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            logger.error("Cannot set user authentication", e);
+        }
+
+        // Continue filter chain (to controllers or next filters)
+        filterChain.doFilter(request, response);
+    }
+
+    /**
      * Parses JWT token from Authorization header (Bearer <token> format).
      * 
      * @param request HTTP request containing Authorization header
