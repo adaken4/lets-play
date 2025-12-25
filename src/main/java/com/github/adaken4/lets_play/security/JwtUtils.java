@@ -49,4 +49,16 @@ public class JwtUtils {
                 .compact();
     }
 
+    /**
+     * Extracts username (email) from valid JWT token.
+     * 
+     * @param token JWT token string
+     * @return username from token subject
+     * @throws io.jsonwebtoken.JwtException if token invalid/malformed
+     */
+    public String getUserNameFromJwtToken(String token) {
+        return Jwts.parser().verifyWith(key()).build()
+                .parseSignedClaims(token).getPayload().getSubject();
+    }
+
 }
