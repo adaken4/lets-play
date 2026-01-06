@@ -1,6 +1,11 @@
 package com.github.adaken4.lets_play.service;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,12 +38,24 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-        // Build Spring Security UserDetails from entity data
-        // Note: Assumes user.getRole() returns single role name (e.g., "USER", "ADMIN")
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail()) // Email servses as username
-                .password(user.getPassword()) // Hashed password from DB
-                .roles(user.getRole()) // Map entity role to authorities
-                .build();
+        // Return UserDetailsImpl instead of the default builder
+        List<GrantedAuthority> authorities = List.of(
+            new SimpleGrantedAuthority("ROLE_" + user.getRole())
+        );
+        return new UserDetailsImpl(user, authorities);
+        
+    }
+
+    public class UserDetailsImpl extends org.springframework.security.core.userdetails.User {
+        private final String id;
+
+        public UserDetailsImpl(User user, Collection<? extends GrantedAuthority> authorities) {
+            super(user.getEmail(), user.getPassword(), authorities);
+            this.id = user.getId();
+        }
+
+        public String getId() {
+            return id;
+        }
     }
 }
