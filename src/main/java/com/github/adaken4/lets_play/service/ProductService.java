@@ -17,4 +17,12 @@ public class ProductService {
         product.setUserId(currentUserId);
         return productRepository.save(product);
     }
+
+    // Authorization helper method: checks if the given user owns the specified product
+    public boolean isOwner(String productId, String userId) {
+        return productRepository.findById(productId)
+                // Returns true only if product exists AND current user matches product owner
+                .map(product -> product.getUserId().equals(userId ))
+                .orElse(false);
+    }
 }
