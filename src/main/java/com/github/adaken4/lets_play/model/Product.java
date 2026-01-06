@@ -22,6 +22,5 @@ public class Product {
     @PositiveOrZero
     private Double price;
 
-    @NotBlank
     private String userId;
 }
