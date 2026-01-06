@@ -34,6 +34,12 @@ public class ProductService {
         return productRepository.save(existing);
     }
 
+    // Deletes a product if user is ADMIN or the product's owner
+    @PreAuthorize("hasRole('ADMIN') or @productService.isOwner(#productId, authentication.principal.id)")
+    public void deleteProduct(String productId) {
+        productRepository.deleteById(productId);
+    }
+
     // Authorization helper method: checks if the given user owns the specified product
     public boolean isOwner(String productId, String userId) {
         return productRepository.findById(productId)
