@@ -3,6 +3,7 @@ package com.github.adaken4.lets_play.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,5 +52,13 @@ public class ProductController {
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         // Delegate update logic to the service, including ownership/authorization checks
         return ResponseEntity.ok(productService.updateProduct(id, product, userDetails.getId()));
+    }
+
+    // Delete a product by ID; authorization is enforced inside the service/method security
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        productService.deleteProduct(id);
+        // Return 204 No Content on successful deletion
+        return ResponseEntity.noContent().build();
     }
 }
