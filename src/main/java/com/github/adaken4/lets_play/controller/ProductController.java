@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,5 +42,14 @@ public class ProductController {
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         // Delegate creation to the service, passing the current user's ID as owner/creator
         return ResponseEntity.ok(productService.createProduct(product, userDetails.getId()));
+    }
+
+    // Update an existing product by ID, ensuring the current user is taken into account
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> update(@PathVariable String id, @Valid @RequestBody Product product, Authentication auth) {
+        // Get authenticated user info from the security context
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        // Delegate update logic to the service, including ownership/authorization checks
+        return ResponseEntity.ok(productService.updateProduct(id, product, userDetails.getId()));
     }
 }
