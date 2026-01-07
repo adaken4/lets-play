@@ -48,8 +48,7 @@ public class SecurityConfig {
             // Customize handling of unauthorized (401) and forbidden (403) responses
             .exceptionHandling(ex -> ex
                 // Called when a user is authenticated but not allowed to access a resource
-                .accessDeniedHandler((request, response, accessDeniedException) -> 
-                    response.sendError(HttpStatus.FORBIDDEN.value(), "Forbidden"))
+                .accessDeniedHandler((customAccessDeniedHandler()))
                 // Called when a request has no valid authentication
                 .authenticationEntryPoint((request, response, authException) -> 
                     response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized"))
