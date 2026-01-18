@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.adaken4.lets_play.dto.UserCreationRequest;
 import com.github.adaken4.lets_play.dto.UserResponse;
+import com.github.adaken4.lets_play.dto.UserUpdateRequest;
 import com.github.adaken4.lets_play.model.User;
 import com.github.adaken4.lets_play.repository.UserRepository;
 
@@ -52,6 +53,26 @@ public class UserService {
         return userRepository.findById(id)
                 .map(this::mapToResponse)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    /**
+     * Partial update (PATCH) - only non-null fields are updated.
+     * Always re-hash password if provided
+     */
+    public UserResponse patchUser(String userId, UserUpdateRequest updates) {
+        User existing = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Partial update pattern - null fields = no change
+        if (updates.name() != null)
+            existing.setName(updates.name());
+        if (updates.email() != null)
+            existing.setEmail(updates.email());
+        if (updates.password() != null) {
+            existing.setPassword(encoder.encode(updates.password()));
+        }
+
+        return mapToResponse(userRepository.save(existing));
     }
 
     /**
