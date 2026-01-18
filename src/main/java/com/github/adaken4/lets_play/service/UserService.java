@@ -46,6 +46,15 @@ public class UserService {
     }
 
     /**
+     * Blocking findById - throws on missing user (usecase contract)
+     */
+    public UserResponse findById(String id) {
+        return userRepository.findById(id)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    /**
      * Single query email check prevents race conditions during concurrent registration
      */
     private void validateUniqueEmail(String email) {
