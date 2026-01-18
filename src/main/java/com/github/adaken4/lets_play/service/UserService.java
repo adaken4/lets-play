@@ -84,6 +84,16 @@ public class UserService {
     }
 
     /**
+     * existsById() short-circuits - avoids full entity load for simple delete
+     */
+    public void deleteById(String id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found" + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    /**
      * Single query email check prevents race conditions during concurrent registration
      */
     private void validateUniqueEmail(String email) {
