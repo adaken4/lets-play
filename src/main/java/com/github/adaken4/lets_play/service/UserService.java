@@ -9,6 +9,7 @@ import com.github.adaken4.lets_play.dto.UserResponse;
 import com.github.adaken4.lets_play.model.User;
 import com.github.adaken4.lets_play.repository.UserRepository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -33,6 +34,15 @@ public class UserService {
             request.role()
         );
         return mapToResponse(userRepository.save(user));
+    }
+
+    /**
+     * Streams all users through mapper
+     */
+    public List<UserResponse> findAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     /**
