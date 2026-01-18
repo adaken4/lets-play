@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,6 +86,17 @@ public class UserController {
     public ResponseEntity<UserResponse> updateProfile(Authentication auth, @RequestBody UserUpdateRequest request) {
         String userId = ((UserDetailsImpl) auth.getPrincipal()).getId();
         return ResponseEntity.ok(userService.patchUser(userId, request));
+    }
+    
+    /**
+     * DELETE /api/users/{id}
+     * Admin can deletes any account; Users can only delete their own account.
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or authentication.principal.id == #id")
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     private URI location(String id) {
