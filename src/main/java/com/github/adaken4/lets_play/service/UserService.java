@@ -11,6 +11,7 @@ import com.github.adaken4.lets_play.model.User;
 import com.github.adaken4.lets_play.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -73,6 +74,13 @@ public class UserService {
         }
 
         return mapToResponse(userRepository.save(existing));
+    }
+
+    /**
+     * Controller-friendly Optional - supports ResponseEntity.notFound() pattern
+     */
+    public Optional<UserResponse> findByIdAsOptional(String id) {
+        return userRepository.findById(id).map(this::mapToResponse);
     }
 
     /**
