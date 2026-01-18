@@ -20,6 +20,7 @@ import com.github.adaken4.lets_play.service.CustomUserDetailsService.UserDetails
 import jakarta.validation.Valid;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -61,6 +62,15 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserById(@PathVariable String id) {
         return userService.findByIdAsOptional(id).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    /**
+     * GET /api/users - Admin only list of all users.
+    */
+   @GetMapping
+   @PreAuthorize("hasRole('ADMIN')")
+   public ResponseEntity<List<UserResponse>> getAllUsers() {
+       return ResponseEntity.ok(userService.findAllUsers());
     }
 
     private URI location(String id) {
