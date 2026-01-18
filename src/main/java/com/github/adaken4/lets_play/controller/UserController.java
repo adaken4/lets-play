@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import com.github.adaken4.lets_play.dto.UserCreationRequest;
 import com.github.adaken4.lets_play.dto.UserResponse;
+import com.github.adaken4.lets_play.dto.UserUpdateRequest;
 import com.github.adaken4.lets_play.service.UserService;
 import com.github.adaken4.lets_play.service.CustomUserDetailsService.UserDetailsImpl;
 
@@ -71,6 +73,18 @@ public class UserController {
    @PreAuthorize("hasRole('ADMIN')")
    public ResponseEntity<List<UserResponse>> getAllUsers() {
        return ResponseEntity.ok(userService.findAllUsers());
+    }
+
+    /**
+     * PATCH /api/users/{id}
+     * 
+     * @param id
+     * @return
+     */
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateProfile(Authentication auth, @RequestBody UserUpdateRequest request) {
+        String userId = ((UserDetailsImpl) auth.getPrincipal()).getId();
+        return ResponseEntity.ok(userService.patchUser(userId, request));
     }
 
     private URI location(String id) {
