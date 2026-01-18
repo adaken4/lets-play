@@ -19,7 +19,7 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private BCryptPasswordEncoder encoder;
 
@@ -29,12 +29,11 @@ public class UserService {
     public UserResponse createUser(UserCreationRequest request) {
         validateUniqueEmail(request.email());
         User user = new User(
-            UUID.randomUUID().toString(),
-            request.name(),
-            request.email(),
-            encoder.encode(request.password()), // Always hash before save
-            request.role()
-        );
+                UUID.randomUUID().toString(),
+                request.name(),
+                request.email(),
+                encoder.encode(request.password()), // Always hash before save
+                request.role());
         return mapToResponse(userRepository.save(user));
     }
 
@@ -94,7 +93,8 @@ public class UserService {
     }
 
     /**
-     * Single query email check prevents race conditions during concurrent registration
+     * Single query email check prevents race conditions during concurrent
+     * registration
      */
     private void validateUniqueEmail(String email) {
         if (userRepository.existsByEmail(email)) {
