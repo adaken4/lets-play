@@ -33,4 +33,14 @@ public class GlobalExceptionHandler {
         error.put("message", "You do not have permission to access this resource.");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
+
+    // Handles custom exception for duplicate email addresses during user registration
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Conflict");
+        error.put("message", ex.getMessage());
+        // Returns 400 - email already in use
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 }
