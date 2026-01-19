@@ -1,6 +1,8 @@
 package com.github.adaken4.lets_play.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +12,6 @@ import com.github.adaken4.lets_play.dto.UserUpdateRequest;
 import com.github.adaken4.lets_play.model.User;
 import com.github.adaken4.lets_play.repository.UserRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,10 +41,9 @@ public class UserService {
     /**
      * Streams all users through mapper
      */
-    public List<UserResponse> findAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .toList();
+    public Page<UserResponse> findAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     /**
