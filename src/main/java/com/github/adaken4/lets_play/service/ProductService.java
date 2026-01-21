@@ -105,4 +105,25 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    /**
+     * Private helper to enforce "Find then Authorize" logic.
+     * Ensures 404 is thrown if missing, and 403 if unauthorized
+     */
+    private Product findAndAuthorizeProduct(String productId, String userId, String userRoles) {
+        // Product existence check
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
+
+        // Authorization check
+        boolean isAdmin = userRoles.contains("ROLE_ADMIN");
+        boolean isOwner = product.getUserId().equals(userId);
+        
+        // Enforce RBAC - admin OR owner only
+        if (!isAdmin && !isOwner) {
+            throw new ForbiddenException("You are not authorized to manage this product.");
+        }
+
+        return product; // Authorized for mutation
+    }
+
 }
