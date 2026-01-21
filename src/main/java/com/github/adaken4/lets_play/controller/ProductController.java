@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -103,6 +104,24 @@ public class ProductController {
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
         return ResponseEntity.ok(productService.updateProduct(id, request, userDetails.getId(),
                 userDetails.getAuthorities().toString()));
+    }
+
+    /**
+     * DELETE /api/products/{id}
+     * Protected endpoint: deletes a product by ID if user is ADMIN or product owner
+     * 
+     * @param id
+     * @param auth
+     * @return Void on success, 404 if not found, 403 if unauthorized
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable String id, Authentication auth) {
+        // Extract authenticated user details from Spring Security context
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        // Calls service to delete product, passing user details for permission check
+        productService.deleteProduct(id, userDetails.getId(), userDetails.getAuthorities().toString());
+        // Return 204 No Content on successful deletion
+        return ResponseEntity.noContent().build();
     }
 
     private URI location(String id) {
