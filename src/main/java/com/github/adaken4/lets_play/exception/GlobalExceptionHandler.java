@@ -58,4 +58,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    // Handles custom exception for when a user is not found
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Not Found");
+        error.put("message", ex.getMessage());
+        // Returns 404 - user not found
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
 }
