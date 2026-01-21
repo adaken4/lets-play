@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import com.github.adaken4.lets_play.dto.ProductCreationRequest;
 import com.github.adaken4.lets_play.dto.ProductResponse;
+import com.github.adaken4.lets_play.dto.ProductUpdateRequest;
+import com.github.adaken4.lets_play.exception.ForbiddenException;
+import com.github.adaken4.lets_play.exception.ProductNotFoundException;
 import com.github.adaken4.lets_play.exception.UserNotFoundException;
 import com.github.adaken4.lets_play.model.Product;
 import com.github.adaken4.lets_play.repository.ProductRepository;
@@ -50,7 +53,7 @@ public class ProductService {
      * 
      * @param request
      * @param userId
-     * @return
+     * @return Created ProductResponse object
      */
     public ProductResponse createProduct(ProductCreationRequest request, String userId) {
         // Ensure user exists before creating product
@@ -67,6 +70,24 @@ public class ProductService {
         product.setUserId(userId);
 
         // Persist and return created product
+        return ProductMapper.toResponse(productRepository.save(product));
+    }
+
+    /**
+     * Partially updates a product if user is ADMIN or the product's owner
+     * 
+     * @param productId
+     * @param request
+     * @param userId
+     * @param userRoles
+     * @return Updated ProductResponse object
+     */
+    public ProductResponse updateProduct(String productId, ProductUpdateRequest request, String userId,
+            String userRoles) {
+        Product product = findAndAuthorizeProduct(productId, userId, userRoles);
+
+        // Only non-null fields from request are applied
+        ProductMapper.partialUpdate(product, request);
         return ProductMapper.toResponse(productRepository.save(product));
     }
 
