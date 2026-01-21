@@ -68,4 +68,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    // Handles custom exception for when a user is forbidden to access a resource
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(ForbiddenException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Forbidden");
+        error.put("message", ex.getMessage());
+        // Returns 403 - forbidden
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
 }
