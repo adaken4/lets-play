@@ -1,17 +1,27 @@
 package com.github.adaken4.lets_play.controller;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.github.adaken4.lets_play.dto.ProductCreationRequest;
 import com.github.adaken4.lets_play.dto.ProductResponse;
 import com.github.adaken4.lets_play.service.ProductService;
+import com.github.adaken4.lets_play.service.CustomUserDetailsService.UserDetailsImpl;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/products")
@@ -54,6 +64,28 @@ public class ProductController {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * POST /api/products
+     * Protected endpoint: creates a new product, owned by the authenticated user
+     * @param request
+     * @param auth
+     * @return Created ProductResponse with Location header
+     */
+    @PostMapping
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductCreationRequest request,
+            Authentication auth) {
+        // Extract authenticated user ID from Spring Security context
+        String userId = ((UserDetailsImpl) auth.getPrincipal()).getId();
+        // Calls service to create product, passing the user ID to associate ownership
+        ProductResponse response = productService.createProduct(request, userId);
+        return ResponseEntity.created(location(response.id())).body(response);
+    }
+
+    private URI location(String id) {
+        return ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}").buildAndExpand(id).toUri();
     }
 
 }
