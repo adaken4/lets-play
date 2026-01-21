@@ -91,4 +91,18 @@ public class ProductService {
         return ProductMapper.toResponse(productRepository.save(product));
     }
 
+    /**
+     * Deletes a product if user is ADMIN or the product's owner
+     * 
+     * @param productId
+     * @param userId
+     * @param userRoles
+     * @return void
+     */
+    public void deleteProduct(String productId, String userId, String userRoles) {
+        // Check existence first -> Returns 404 if missing
+        Product product = findAndAuthorizeProduct(productId, userId, userRoles);
+        productRepository.delete(product);
+    }
+
 }
