@@ -9,6 +9,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.github.adaken4.lets_play.dto.ProductCreationRequest;
 import com.github.adaken4.lets_play.dto.ProductResponse;
+import com.github.adaken4.lets_play.dto.ProductUpdateRequest;
 import com.github.adaken4.lets_play.service.ProductService;
 import com.github.adaken4.lets_play.service.CustomUserDetailsService.UserDetailsImpl;
 
@@ -69,6 +71,7 @@ public class ProductController {
     /**
      * POST /api/products
      * Protected endpoint: creates a new product, owned by the authenticated user
+     * 
      * @param request
      * @param auth
      * @return Created ProductResponse with Location header
@@ -81,6 +84,25 @@ public class ProductController {
         // Calls service to create product, passing the user ID to associate ownership
         ProductResponse response = productService.createProduct(request, userId);
         return ResponseEntity.created(location(response.id())).body(response);
+    }
+
+    /**
+     * PATCH /api/products/{id}
+     * Protected endpoint: updates an existing product by ID
+     * 
+     * @param id
+     * @param request
+     * @param auth
+     * @return Updated ProductResponse
+     */
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable String id,
+            @RequestBody ProductUpdateRequest request,
+            Authentication auth) {
+        // Extract authenticated user details from Spring Security context
+        UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        return ResponseEntity.ok(productService.updateProduct(id, request, userDetails.getId(),
+                userDetails.getAuthorities().toString()));
     }
 
     private URI location(String id) {
