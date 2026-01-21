@@ -1,17 +1,25 @@
 package com.github.adaken4.lets_play.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import com.github.adaken4.lets_play.dto.ProductCreationRequest;
 import com.github.adaken4.lets_play.dto.ProductResponse;
+import com.github.adaken4.lets_play.exception.UserNotFoundException;
+import com.github.adaken4.lets_play.model.Product;
 import com.github.adaken4.lets_play.repository.ProductRepository;
+import com.github.adaken4.lets_play.repository.UserRepository;
 
 @Service
 public class ProductService {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ProductRepository productRepository;
@@ -35,6 +43,31 @@ public class ProductService {
      */
     public Optional<ProductResponse> getProductById(String id) {
         return productRepository.findById(id).map(ProductMapper::toResponse);
+    }
+
+    /**
+     * Creates a new product owned by the authenticated user
+     * 
+     * @param request
+     * @param userId
+     * @return
+     */
+    public ProductResponse createProduct(ProductCreationRequest request, String userId) {
+        // Ensure user exists before creating product
+        userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Transform validated DTO -> Product entity
+        Product product = ProductMapper.toEntity(request);
+
+        // Generate globally unique product ID
+        product.setId(UUID.randomUUID().toString());
+
+        // Establish ownership relationship for authorization
+        product.setUserId(userId);
+
+        // Persist and return created product
+        return ProductMapper.toResponse(productRepository.save(product));
     }
 
 }
