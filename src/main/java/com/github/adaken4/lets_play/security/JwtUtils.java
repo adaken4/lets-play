@@ -3,6 +3,8 @@ package com.github.adaken4.lets_play.security;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.github.adaken4.lets_play.model.User;
+
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
@@ -45,6 +47,22 @@ public class JwtUtils {
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key())
+                .compact();
+    }
+
+    /**
+     * Generates JWT token containing user details as claims.
+     * 
+     * @param user User entity
+     * @return compact JWT string with user info
+     */
+    public String generateTokenFromUser (User user) {
+        return Jwts.builder()
+                .subject(user.getEmail())
+                .claim("role", user.getRole())
+                .claim("userId", user.getId())
+                .issuedAt(new Date())
                 .signWith(key())
                 .compact();
     }
