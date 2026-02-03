@@ -6,9 +6,12 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.github.adaken4.lets_play.dto.ApiErrorResponse;
+
 import io.github.bucket4j.Bucket;
 
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.servlet.http.HttpServletResponse;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -50,4 +53,27 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 .build();
     }
 
+    /**
+     * Attempts to consume one token from the bucket.
+     * Returns false and writes 429 error if bucket empty.
+     */
+    private boolean consumeToken(Bucket bucket, HttpServletResponse response) throws Exception {
+
+        if (bucket.tryConsume(1)) {
+            return true;
+        } else {
+            response.setStatus(429); // Too Many Requests
+            response.setContentType("application/json");
+
+            ApiErrorResponse error = new ApiErrorResponse(
+                    429,
+                    "Too Many Requests",
+                    "Rate limit exceeded. Please try again in a minute.",
+                    System.currentTimeMillis());
+
+            response.getWriter().write(objectMapper.writeValueAsString(error));
+            return false;
+        }
+    }
+    
 }
