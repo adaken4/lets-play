@@ -88,13 +88,13 @@ public class AuthController {
 
         // Store authentication in SecurityContext (for current request)
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // Generate JWT token using email as subject
-        String jwt = jwtUtils.generateTokenFromUsername(loginRequest.getEmail());
-
+        
         // Build JWT response with user details
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByEmail(userDetails.getUsername()).get();
+
+        // Generate JWT token with user info as claims
+        String jwt = jwtUtils.generateTokenFromUser(user);
 
         return ResponseEntity.ok(new JwtResponse(
                 jwt, // JWT token string
