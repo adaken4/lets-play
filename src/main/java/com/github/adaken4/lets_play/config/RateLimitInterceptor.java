@@ -11,6 +11,7 @@ import com.github.adaken4.lets_play.dto.ApiErrorResponse;
 import io.github.bucket4j.Bucket;
 
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tools.jackson.databind.ObjectMapper;
 
@@ -31,6 +32,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     /**
      * Creates rate limit bucket for authentication endpoints.
+     * 
      * @return Bucket with 5 requests per minute limit
      */
     private Bucket createAuthBucket() {
@@ -43,6 +45,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     /**
      * Creates rate limit bucket for general API endpoints.
+     * 
      * @return Bucket with 100 requests per minute limit
      */
     private Bucket createGlobalBucket() {
@@ -51,6 +54,29 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                         .capacity(100)
                         .refillIntervally(100, Duration.ofMinutes(1)))
                 .build();
+    }
+
+    /**
+     * Main rate limiting logic - runs before each request.
+     * Returns false and sends 429 response if limit exceeded.
+     */
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
+
+        String clientIp = request.getRemoteAddr();
+        String path = request.getRequestURI();
+
+        // Apply strict limits to auth endpoints (prevent brute force)
+        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
+            return consumeToken(authBuckets.computeIfAbsent(clientIp, k -> createAuthBucket()), response);
+            // Apply general limits to all other /api/ endpoints
+        } else if (path.startsWith("/api/")) {
+            return consumeToken(globalBuckets.computeIfAbsent(clientIp, k -> createGlobalBucket()), response);
+        }
+
+        // No rate limiting for non-API endpoints
+        return true;
     }
 
     /**
@@ -75,5 +101,5 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return false;
         }
     }
-    
+
 }
